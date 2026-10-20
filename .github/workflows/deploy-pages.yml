@@ -1,0 +1,43 @@
+name: Publish The Room Project Editorial 2
+on:
+  push:
+    branches: [main]
+    paths:
+      - the-room-project-2.zip
+      - .github/workflows/deploy-pages.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out approved Editorial 2
+        uses: actions/checkout@v6
+      - name: Verify and unpack the public website
+        run: |
+          echo '68a711073064f32b882602d16a749dfa0fc0ea68d9a19f86ee2b38857ec721a6  the-room-project-2.zip' | sha256sum --check
+          mkdir -p _site
+          unzip -q the-room-project-2.zip -d _site
+          test -f _site/index.html
+          test -f _site/assets/graphic-cloud-hero.js
+          test -f _site/assets/graphic-cloud-hero.css
+          test -f _site/assets/vendor/three.module.js
+          test -f _site/assets/editorial/refresh-before-after.png
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Publish website
+        id: deployment
+        uses: actions/deploy-pages@v4
